@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Divider, Typography } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { authActions } from "../authSlice";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
+import { authActions } from "../authSlice";
+import FormInput from "components/Common/FormInput";
 
 interface SignUpPageProps {}
 
@@ -13,13 +16,42 @@ interface InputProps {
   password: string;
 }
 
+const inputs = [
+  {
+    id: 1,
+    name: "name",
+    type: "text",
+    helperText:
+      "Username should be 3-16 characters and shouldn't include any special character.",
+    pattern: "^[A-Za-z0-9]{3,16}$",
+    placeholder: "Username",
+  },
+  {
+    id: 2,
+    name: "email",
+    type: "email",
+    helperText: "It should be a valid email address.",
+    pattern: `\[a\-z0\-9\._%\+\-\]\+@\[a\-z0\-9\.\-\]\+\\\.\[a\-z\]\{2,4\}\$`,
+    placeholder: "Email address",
+  },
+  {
+    id: 3,
+    name: "password",
+    type: "password",
+    helperText:
+      "This field must be at least 7 characters, cannot contain white spaces",
+    pattern: "^[A-Za-z0-9]{7,}$",
+    placeholder: "Password",
+  },
+];
+
 const SignUpPage = (props: SignUpPageProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const selector = useAppSelector;
   const signUpSuccess = selector((state) => state.auth.signUp.signUpSuccess);
   const loading = selector((state) => state.auth.loading);
-  const [inputs, setInputs] = useState<InputProps>({
+  const [inputsForm, setInputs] = useState<InputProps>({
     name: "",
     email: "",
     password: "",
@@ -27,12 +59,9 @@ const SignUpPage = (props: SignUpPageProps) => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    console.log(inputs);
   };
 
   const handleChange = (e: any) => {
-    console.log(e.target.name);
-
     setInputs((prevState) => ({
       ...prevState,
       [e.target.name]: e.target.value,
@@ -40,8 +69,7 @@ const SignUpPage = (props: SignUpPageProps) => {
   };
 
   const handleSignUpClick = async () => {
-    dispatch(authActions.signUp(inputs));
-    console.log(signUpSuccess);
+    dispatch(authActions.signUp(inputsForm));
   };
 
   useEffect(() => {
@@ -94,6 +122,20 @@ const SignUpPage = (props: SignUpPageProps) => {
             "& hr": {
               m: 1,
             },
+            "& a": {
+              textDecoration: "none",
+              color: "blue",
+            },
+
+            "& .MuiTextField-root p": {
+              display: "none",
+              color: "red",
+            },
+            "& .MuiTextField-root:has(input:invalid[focused='true']) p, & .MuiTextField-root:has(input:invalid[focused='true']) fieldset":
+              {
+                display: "block",
+                borderColor: "red",
+              },
           }}
         >
           <Typography
@@ -117,36 +159,37 @@ const SignUpPage = (props: SignUpPageProps) => {
             It's quick and easy.
           </Typography>
           <Divider style={{ width: "100%" }}></Divider>
-          <TextField
-            fullWidth
-            required
-            variant="outlined"
-            size="medium"
-            type="text"
-            name="name"
-            placeholder="Name"
-            onChange={(e) => handleChange(e)}
-          />
-          <TextField
-            fullWidth
-            required
-            variant="outlined"
-            size="medium"
-            type="email"
-            name="email"
-            placeholder="Email address"
-            onChange={(e) => handleChange(e)}
-          />
-          <TextField
-            fullWidth
-            required
-            variant="outlined"
-            type="password"
-            size="medium"
-            name="password"
-            placeholder="Password"
-            onChange={(e) => handleChange(e)}
-          />
+          {inputs.map((input) => (
+            <FormInput
+              key={input.id}
+              helperText={input.helperText}
+              name={input.name}
+              type={input.type}
+              pattern={input.pattern}
+              placeholder={input.placeholder}
+              onChange={handleChange}
+            />
+            // <>
+            //   <TextField
+            //     key={input.id}/
+            //     error={false}
+            //     fullWidth
+            //     variant="outlined"
+            //     size="medium"
+            //     helperText={input.helperText}/
+            //     inputProps={{
+            //       required: true,
+            //       name: input.name,/
+            //       type: input.type,/
+            //       pattern: input.pattern,/
+            //       placeholder: input.placeholder,/
+            //       focused: `${focused}`,
+            //     }}
+            //     onBlur={handleFocus}
+            //     onChange={(e) => handleChange(e)}/
+            //   />
+            // </>
+          ))}
           <LoadingButton
             size="small"
             loading={loading}
@@ -155,6 +198,11 @@ const SignUpPage = (props: SignUpPageProps) => {
           >
             Sign Up
           </LoadingButton>
+          <Divider />
+
+          <Box>
+            Have an account already? <Link to="/login">Log in</Link>
+          </Box>
         </Box>
       </form>
     </div>

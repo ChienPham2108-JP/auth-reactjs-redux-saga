@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Box, TextField, Divider, Button, Typography } from "@mui/material";
+import { Box, Divider, Button, Typography } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/hooks";
+
 import { authActions } from "../authSlice";
+import FormInput from "components/Common/FormInput";
 
 interface InputProps {
   email: string;
@@ -12,13 +14,33 @@ interface InputProps {
 
 interface LoginPageProps {}
 
+const inputs = [
+  {
+    id: 1,
+    name: "email",
+    type: "email",
+    helperText: "It should be a valid email address.",
+    pattern: `\[a\-z0\-9\._%\+\-\]\+@\[a\-z0\-9\.\-\]\+\\\.\[a\-z\]\{2,4\}\$`,
+    placeholder: "Email address",
+  },
+  {
+    id: 2,
+    name: "password",
+    type: "password",
+    helperText:
+      "This field must be at least 7 characters, cannot contain white spaces",
+    pattern: "^[A-Za-z0-9]{7,}$",
+    placeholder: "Password",
+  },
+];
+
 const LoginPage = (props: LoginPageProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const selector = useAppSelector;
   const isLoggedIn = selector((state) => state.auth.isLoggedIn);
   const loading = selector((state) => state.auth.loading);
-  const [inputs, setInputs] = useState<InputProps>({
+  const [inputsForm, setInputsForm] = useState<InputProps>({
     email: "",
     password: "",
   });
@@ -28,16 +50,14 @@ const LoginPage = (props: LoginPageProps) => {
   };
 
   const handleChange = (e: any) => {
-    console.log(e.target.name);
-
-    setInputs((prevState) => ({
+    setInputsForm((prevState) => ({
       ...prevState,
       [e.target.name]: e.target.value,
     }));
   };
 
   const handleLoginClick = () => {
-    dispatch(authActions.login(inputs));
+    dispatch(authActions.login(inputsForm));
   };
 
   const handleSignUpClick = () => {
@@ -49,7 +69,6 @@ const LoginPage = (props: LoginPageProps) => {
   useEffect(() => {
     if (isLoggedIn) {
       navigate("/user");
-      // localStorage.removeItem("access_token");
     }
   }, [navigate, isLoggedIn]);
 
@@ -78,33 +97,28 @@ const LoginPage = (props: LoginPageProps) => {
               height: "10px",
               width: "100%",
             },
+            "& .MuiTextField-root p": {
+              display: "none",
+              color: "red",
+            },
+            "& .MuiTextField-root:has(input:invalid[focused='true']) p, & .MuiTextField-root:has(input:invalid[focused='true']) fieldset":
+              {
+                display: "block",
+                borderColor: "red",
+              },
           }}
         >
-          <TextField
-            fullWidth
-            required
-            name="email"
-            defaultValue={inputs.email}
-            variant="outlined"
-            size="medium"
-            type="email"
-            placeholder="Email address"
-            onChange={(e) => handleChange(e)}
-          />
-          <TextField
-            fullWidth
-            required
-            name="password"
-            defaultValue={inputs.password}
-            inputProps={{
-              minLength: "7",
-            }}
-            variant="outlined"
-            type="password"
-            size="medium"
-            placeholder="Password"
-            onChange={(e) => handleChange(e)}
-          />
+          {inputs.map((input) => (
+            <FormInput
+              key={input.id}
+              helperText={input.helperText}
+              name={input.name}
+              type={input.type}
+              pattern={input.pattern}
+              placeholder={input.placeholder}
+              onChange={handleChange}
+            />
+          ))}
           <LoadingButton
             fullWidth
             size="large"
