@@ -1,7 +1,7 @@
 import { PayloadAction } from "@reduxjs/toolkit";
 import { AxiosResponse } from "axios";
 import { toast } from "react-toastify";
-import { take, call, put, all, takeLeading } from "redux-saga/effects";
+import { take, call, put, all, takeLeading, retry } from "redux-saga/effects";
 
 import { authActions, AuthState, LoginPayload } from "./authSlice";
 import { createUserAPI, loginAPI, logOutAPI } from "../../api";
@@ -13,10 +13,10 @@ function* handleLogin(payload: LoginPayload) {
     // set token to localStorage
     localStorage.setItem("access_token", response.data.token);
 
-    yield put(authActions.loginSuccess(response.data));
+    yield put(authActions.loginSucces(response.data));
     toast.success("Login success!");
   } catch (error: any) {
-    yield put(authActions.loginFailed(error.message));
+    yield put(authActions.updateSatus("failue"));
     toast.error("Login failed! Check authentication credentials");
   }
 }
@@ -24,14 +24,17 @@ function* handleLogin(payload: LoginPayload) {
 // Worker handle logout
 function* handleLogOut(payload: AuthState) {
   try {
-    yield call(logOutAPI, payload.token, payload.user);
+    // yield call(logOutAPI, payload.token, payload.user);
+    yield retry(2, 2000, logOutAPI, payload.token, payload.user);
 
     // remove token to localStorage
-    localStorage.removeItem("access_token");
-
-    toast.success("Logout Success!");
+    yield localStorage.removeItem("access_token");
+    // yield put(authActions.updateSatus("success"));
+    yield put(authActions.logOutSuccess(payload));
+    // toast.success("Logout success!");
   } catch (error) {
-    toast.error(`${error}`);
+    yield localStorage.removeItem("access_token");
+    yield put(authActions.updateSatus("failue"));
   }
 }
 
@@ -62,12 +65,14 @@ function* handleSignUp(action: PayloadAction) {
   try {
     const response: AxiosResponse = yield call(createUserAPI, action.payload);
     if (response.status === 201) {
-      yield put(authActions.signUpSuccess());
+      yield put(authActions.updateSatus("success"));
       toast.success("Signup success!");
     }
   } catch (error) {
-    yield put(authActions.signUpFailed());
-    toast.error("Signup failed!");
+    yield put(authActions.updateSatus("failue"));
+    toast.error(
+      "Signup failed! Maybe your email address is in use by another member or ERROR CONNECTION"
+    );
   }
 }
 

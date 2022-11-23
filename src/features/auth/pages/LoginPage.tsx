@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 
 import { authActions } from "../authSlice";
-import FormInput from "components/Common/FormInput";
+import { FormInput } from "components/Common";
 
 interface InputProps {
   email: string;
@@ -20,7 +20,7 @@ const inputs = [
     name: "email",
     type: "email",
     helperText: "It should be a valid email address.",
-    pattern: `\[a\-z0\-9\._%\+\-\]\+@\[a\-z0\-9\.\-\]\+\\\.\[a\-z\]\{2,4\}\$`,
+    pattern: `[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$`,
     placeholder: "Email address",
   },
   {
@@ -38,8 +38,10 @@ const LoginPage = (props: LoginPageProps) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const selector = useAppSelector;
-  const isLoggedIn = selector((state) => state.auth.isLoggedIn);
-  const loading = selector((state) => state.auth.loading);
+  const status = selector((state) => state.auth.status);
+  let isValid = true;
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+  const passwordRegex = /^[A-Za-z0-9]{7,}$/;
   const [inputsForm, setInputsForm] = useState<InputProps>({
     email: "",
     password: "",
@@ -57,20 +59,29 @@ const LoginPage = (props: LoginPageProps) => {
   };
 
   const handleLoginClick = () => {
-    dispatch(authActions.login(inputsForm));
+    if (
+      !emailRegex.test(inputsForm.email) ||
+      !passwordRegex.test(inputsForm.password)
+    ) {
+      isValid = false;
+    }
+    if (isValid) {
+      dispatch(authActions.login(inputsForm));
+    }
   };
 
   const handleSignUpClick = () => {
-    dispatch(authActions.createAccount());
     localStorage.removeItem("access_token");
+    dispatch(authActions.updateSatus(""));
     navigate("/signup");
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (status === "success") {
       navigate("/user");
+      dispatch(authActions.updateSatus(""));
     }
-  }, [navigate, isLoggedIn]);
+  }, [navigate, status, dispatch]);
 
   return (
     <div>
@@ -122,7 +133,7 @@ const LoginPage = (props: LoginPageProps) => {
           <LoadingButton
             fullWidth
             size="large"
-            loading={loading}
+            loading={status === "loading" ? true : false}
             variant="contained"
             type="submit"
             onClick={handleLoginClick}

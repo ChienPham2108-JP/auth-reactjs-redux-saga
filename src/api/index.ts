@@ -19,4 +19,4 @@ export const createUserAPI = async (user: any) =>
 export const logOutAPI = async (token: any, user: any) =>
   await axios.post("/users/me/logout", user, config(token));
 
-export const getUserAPI = async () => axios.get("/users/me");
+// export const getUserAPI = async () => axios.get("/users/me");

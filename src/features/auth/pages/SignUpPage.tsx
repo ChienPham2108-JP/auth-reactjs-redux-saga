@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 import { authActions } from "../authSlice";
-import FormInput from "components/Common/FormInput";
+import { FormInput } from "components/Common";
 
 interface SignUpPageProps {}
 
@@ -31,7 +31,7 @@ const inputs = [
     name: "email",
     type: "email",
     helperText: "It should be a valid email address.",
-    pattern: `\[a\-z0\-9\._%\+\-\]\+@\[a\-z0\-9\.\-\]\+\\\.\[a\-z\]\{2,4\}\$`,
+    pattern: `[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$`,
     placeholder: "Email address",
   },
   {
@@ -49,8 +49,11 @@ const SignUpPage = (props: SignUpPageProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const selector = useAppSelector;
-  const signUpSuccess = selector((state) => state.auth.signUp.signUpSuccess);
-  const loading = selector((state) => state.auth.loading);
+  let isValid = true;
+  const nameRegex = /^[A-Za-z0-9]{3,16}$/;
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+  const passwordRegex = /^[A-Za-z0-9]{7,}$/;
+  const status = selector((state) => state.auth.status);
   const [inputsForm, setInputs] = useState<InputProps>({
     name: "",
     email: "",
@@ -69,14 +72,24 @@ const SignUpPage = (props: SignUpPageProps) => {
   };
 
   const handleSignUpClick = async () => {
-    dispatch(authActions.signUp(inputsForm));
+    if (
+      !nameRegex.test(inputsForm.name) ||
+      !emailRegex.test(inputsForm.email) ||
+      !passwordRegex.test(inputsForm.password)
+    ) {
+      isValid = false;
+    }
+    if (isValid) {
+      dispatch(authActions.signUp(inputsForm));
+    }
   };
 
   useEffect(() => {
-    if (signUpSuccess) {
+    if (status === "success") {
       navigate("/login");
+      dispatch(authActions.updateSatus(""));
     }
-  }, [navigate, signUpSuccess]);
+  }, [navigate, status, dispatch]);
 
   return (
     <div
@@ -169,30 +182,10 @@ const SignUpPage = (props: SignUpPageProps) => {
               placeholder={input.placeholder}
               onChange={handleChange}
             />
-            // <>
-            //   <TextField
-            //     key={input.id}/
-            //     error={false}
-            //     fullWidth
-            //     variant="outlined"
-            //     size="medium"
-            //     helperText={input.helperText}/
-            //     inputProps={{
-            //       required: true,
-            //       name: input.name,/
-            //       type: input.type,/
-            //       pattern: input.pattern,/
-            //       placeholder: input.placeholder,/
-            //       focused: `${focused}`,
-            //     }}
-            //     onBlur={handleFocus}
-            //     onChange={(e) => handleChange(e)}/
-            //   />
-            // </>
           ))}
           <LoadingButton
             size="small"
-            loading={loading}
+            loading={status === "loading" ? true : false}
             variant="contained"
             onClick={handleSignUpClick}
           >

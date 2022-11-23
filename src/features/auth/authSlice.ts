@@ -25,27 +25,17 @@ export interface User {
 }
 
 export interface AuthState {
-  loading?: boolean;
-  isLoggedIn: boolean;
+  status?: Status;
   user?: User;
   token: string;
-  signUp: ISignUpProps;
 }
 
-interface ISignUpProps {
-  signUpSuccess: boolean;
-  signUpFailue: boolean;
-}
+export type Status = "" | "loading" | "success" | "failue";
 
 const initialState: AuthState = {
   user: undefined,
-  loading: false,
-  isLoggedIn: false,
   token: "",
-  signUp: {
-    signUpSuccess: false,
-    signUpFailue: false,
-  },
+  status: "",
 };
 
 const authSlice = createSlice({
@@ -53,53 +43,37 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     signUp(state, action: PayloadAction<SignUpPayload>) {
-      state.loading = true;
-    },
-    signUpSuccess(state) {
-      state.isLoggedIn = false;
-      state.loading = false;
-      state.signUp.signUpSuccess = true;
-    },
-    signUpFailed(state) {
-      state.loading = false;
-      state.signUp.signUpFailue = true;
-      state.signUp.signUpSuccess = false;
+      state.status = "loading";
     },
 
     login(state, action: PayloadAction<LoginPayload>) {
-      state.loading = true;
-      state.signUp.signUpFailue = false;
-      state.signUp.signUpSuccess = false;
+      state.status = "loading";
     },
-    loginSuccess(state, action: PayloadAction<AuthState>) {
-      state.isLoggedIn = true;
-      state.loading = false;
+
+    loginSucces(state, action: PayloadAction<AuthState>) {
+      state.status = "success";
       state.user = action.payload.user;
       state.token = action.payload.token;
     },
-    loginFailed(state, action: PayloadAction<string>) {
-      state.loading = false;
-    },
-
-    createAccount(state) {
-      state.signUp.signUpSuccess = false;
-    },
 
     logOut(state, actions: PayloadAction<AuthState>) {
+      state.status = "loading";
+    },
+
+    logOutSuccess(state, actions: PayloadAction<AuthState>) {
       state.user = undefined;
+      state.status = "success";
       state.token = "";
-      state.isLoggedIn = false;
-      state.loading = false;
+    },
+
+    updateSatus(state, actions: PayloadAction<Status>) {
+      state.status = actions.payload;
     },
   },
 });
 
 // Actions
 export const authActions = authSlice.actions;
-
-// Selectors
-export const selectIsLoggedIn = (state: any) => state.auth.isLoggedIn;
-export const selectLogging = (state: any) => state.auth.loading;
 
 // Reducer
 const authReducer = authSlice.reducer;

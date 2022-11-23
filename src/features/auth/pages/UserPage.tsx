@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -26,6 +26,7 @@ interface UserPageProps {}
 const UserPage = (props: UserPageProps) => {
   const dispatch = useAppDispatch();
   const selector = useAppSelector;
+  const status = selector((state) => state.auth.status);
   const authState = selector((state) => state.auth);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -33,7 +34,6 @@ const UserPage = (props: UserPageProps) => {
 
   const handleLogOutClick = () => {
     dispatch(authActions.logOut(authState));
-    navigate("/login");
   };
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -42,6 +42,13 @@ const UserPage = (props: UserPageProps) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  useEffect(() => {
+    if (status === "success" || status === "failue") {
+      navigate("/login");
+      dispatch(authActions.updateSatus(""));
+    }
+  }, [status, navigate, dispatch]);
 
   return (
     <>
