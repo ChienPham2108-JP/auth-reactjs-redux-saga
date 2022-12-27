@@ -4,12 +4,15 @@ import { toast } from "react-toastify";
 import { take, call, put, all, takeLeading, retry } from "redux-saga/effects";
 
 import { authActions, AuthState, LoginPayload } from "./authSlice";
-import { createUserAPI, loginAPI, logOutAPI } from "../../api";
+// import { createUserAPI, loginAPI, logOutAPI } from "../../api";
+import { useSignUp } from "hooks/signup";
+import { usePostLogIn } from "hooks/signin";
+import { useLogOut } from "hooks/logout";
 
 // Worker handle login
 function* handleLogin(payload: LoginPayload) {
   try {
-    const response: AxiosResponse<any, any> = yield call(loginAPI, payload);
+    const response: AxiosResponse<any, any> = yield call(usePostLogIn, payload);
     // set token to localStorage
     localStorage.setItem("access_token", response.data.token);
 
@@ -25,7 +28,7 @@ function* handleLogin(payload: LoginPayload) {
 function* handleLogOut(payload: AuthState) {
   try {
     // yield call(logOutAPI, payload.token, payload.user);
-    yield retry(2, 2000, logOutAPI, payload.token, payload.user);
+    yield retry(2, 2000, useLogOut, payload);
 
     // remove token to localStorage
     yield localStorage.removeItem("access_token");
@@ -63,7 +66,7 @@ function* watchLoginFlow() {
 // Worker saga will be  fired on auth/signUp action
 function* handleSignUp(action: PayloadAction) {
   try {
-    const response: AxiosResponse = yield call(createUserAPI, action.payload);
+    const response: AxiosResponse = yield call(useSignUp, action.payload);
     if (response.status === 201) {
       yield put(authActions.updateSatus("success"));
       toast.success("Signup success!");
