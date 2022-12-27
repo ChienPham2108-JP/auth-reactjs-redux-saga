@@ -24,6 +24,9 @@ const FormInput = (props: any) => {
           placeholder: props.placeholder,
           focused: `${focused}`,
         }}
+        onInvalid={(e) => {
+          setFocused(true);
+        }}
         onBlur={handleFocus}
         onChange={(e) => props.onChange(e)}
       />

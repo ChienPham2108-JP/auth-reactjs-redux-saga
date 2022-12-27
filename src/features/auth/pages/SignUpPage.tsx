@@ -81,6 +81,9 @@ const SignUpPage = (props: SignUpPageProps) => {
     }
     if (isValid) {
       dispatch(authActions.signUp(inputsForm));
+    } else {
+      if (inputsForm.name === "") {
+      }
     }
   };
 
@@ -185,6 +188,7 @@ const SignUpPage = (props: SignUpPageProps) => {
           ))}
           <LoadingButton
             size="small"
+            type="submit"
             loading={status === "loading" ? true : false}
             variant="contained"
             onClick={handleSignUpClick}
